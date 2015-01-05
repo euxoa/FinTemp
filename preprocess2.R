@@ -11,11 +11,10 @@ t2 <- t0 %>% filter(sid %in% sids) %>%
   left_join(s0, by="sid") %>%
   mutate(sid=as.factor(sid), 
          subsid=as.factor(paste(sid, sub, sep=".")), name=as.factor(paste(name, sub, sep=":")),
-         imonth=as.numeric(month), t=t/10) 
+         imonth=as.numeric(month), t=t/10, decade=(year-mean(year))/10)
 if (F) {
   t2 %>%  ggplot(aes(x=year, y=t, color=name)) + geom_line() + facet_wrap(~ month)
-  m <- lmer(t ~ (1 + decade | subsid) + (1 + decade | month) + decade, 
-            data=t2 %>% filter(year>1980) %>% mutate(decade=(year-mean(year))/10))
+  m <- lmer(t ~ (1 + decade | subsid) + (1 + decade | month) + decade, data=t2)
   ranef(m)$subsid["(Intercept)"] # Outliers
   t2 %>% group_by(subsid) %>% summarise(n=n()) %>% filter(n<12*5) # Almost no obs
 }
@@ -29,8 +28,7 @@ if (F) {
   hist(t2$t, n=100)
 }
 
-m <- lmer(t ~ (1 + decade | name) + (1 + decade | month) + decade, 
-          data=t2 %>% mutate(decade=(year-mean(year))/10))
+m <- lmer(t ~ (1 + decade | name) + (1 + decade | month) + decade, data=t2 )
 summary(m)
 ranef(m)
 t2 %>%  ggplot(aes(x=year, y=t, color=name)) + geom_line() + facet_wrap(~ month)
@@ -38,3 +36,9 @@ t2 %>% mutate(r=resid(m)) %>% ggplot(aes(x=year, y=r, color=name)) + geom_point(
 t2 %>% mutate(r=resid(m)) %>% ggplot(aes(x=year, y=r, color=month)) + geom_point() + facet_wrap(~ name)
 # There's significant name-month interaction
 # Monthly residuals are different
+m2 <- lm(t ~ decade*name + month*name, data=t2)
+t2 %>% mutate(r=resid(m2)) %>% ggplot(aes(x=year, y=r, color=name)) + geom_point() + facet_wrap(~ month)
+t2 %>% mutate(r=resid(m2)) %>% ggplot(aes(x=year, y=r, color=month)) + geom_point() + facet_wrap(~ name)
+# There is lag-1 autocorrelation
+acf((t2 %>% mutate(r=resid(m2)) %>% group_by(year, imonth) %>% 
+       summarise(r=mean(r)) %>% mutate(ym=year+imonth/12) %>% arrange(ym))$r)
