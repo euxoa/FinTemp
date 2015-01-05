@@ -42,3 +42,8 @@ t2 %>% mutate(r=resid(m2)) %>% ggplot(aes(x=year, y=r, color=month)) + geom_poin
 # There is lag-1 autocorrelation
 acf((t2 %>% mutate(r=resid(m2)) %>% group_by(year, imonth) %>% 
        summarise(r=mean(r)) %>% mutate(ym=year+imonth/12) %>% arrange(ym))$r)
+
+m3 <- lmer(t ~ 1+ name*month + (0 + decade | month) + (0 + decade | name) + decade, data=t2 )
+fixef(m3)["decade"] # 0.441727
+ranef(m3)$month
+
