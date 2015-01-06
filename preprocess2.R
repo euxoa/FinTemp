@@ -28,22 +28,32 @@ if (F) {
   hist(t2$t, n=100)
 }
 
-m <- lmer(t ~ (1 + decade | name) + (1 + decade | month) + decade, data=t2 )
-summary(m)
-ranef(m)
-t2 %>%  ggplot(aes(x=year, y=t, color=name)) + geom_line() + facet_wrap(~ month)
-t2 %>% mutate(r=resid(m)) %>% ggplot(aes(x=year, y=r, color=name)) + geom_point() + facet_wrap(~ month)
-t2 %>% mutate(r=resid(m)) %>% ggplot(aes(x=year, y=r, color=month)) + geom_point() + facet_wrap(~ name)
-# There's significant name-month interaction
-# Monthly residuals are different
-m2 <- lm(t ~ decade*name + month*name, data=t2)
-t2 %>% mutate(r=resid(m2)) %>% ggplot(aes(x=year, y=r, color=name)) + geom_point() + facet_wrap(~ month)
-t2 %>% mutate(r=resid(m2)) %>% ggplot(aes(x=year, y=r, color=month)) + geom_point() + facet_wrap(~ name)
-# There is lag-1 autocorrelation
-acf((t2 %>% mutate(r=resid(m2)) %>% group_by(year, imonth) %>% 
-       summarise(r=mean(r)) %>% mutate(ym=year+imonth/12) %>% arrange(ym))$r)
+library(ggplot2)
+library(lme4)
 
 m3 <- lmer(t ~ 1+ name*month + (0 + decade | month) + (0 + decade | name) + decade, data=t2 )
-fixef(m3)["decade"] # 0.441727
+fixef(m3)["decade"] # 0.441727 ± 0.06221
 ranef(m3)$month
+t2 %>% mutate(r=resid(m3)) %>% ggplot(aes(x=year, y=r, color=name)) + geom_point() + facet_wrap(~ month)
+t2 %>% mutate(r=resid(m3)) %>% ggplot(aes(x=year, y=r, color=month)) + geom_point() + facet_wrap(~ name)
+# There is lag-1 autocorrelation
+acf((t2 %>% mutate(r=resid(m3)) %>% group_by(year, imonth) %>% 
+       summarise(r=mean(r)) %>% mutate(ym=year+imonth/12) %>% arrange(ym))$r)
 
+m4 <- lmer(t ~ 1+ name*month + (0 + decade | month) + (I(lat-mean(lat)) + I(lon-mean(lon))):decade + decade, data=t2 )
+fixef(m4)["decade"]
+fixef(m4)["I(lat - mean(lat)):decade"]
+ranef(m4)$month
+t2 %>% mutate(r=resid(m4)) %>% ggplot(aes(x=year, y=r, color=name)) + geom_point() + facet_wrap(~ month)
+t2 %>% mutate(r=resid(m4)) %>% ggplot(aes(x=year, y=r, color=month)) + geom_point() + facet_wrap(~ name)
+
+# library(gamm4)
+m5 <- gam(t ~ s(name, month, bs="re") + s(I(imonth+.5), k=12, by=decade, bs="cc") + (I(lat-62) + I(lon-29)):decade, 
+            data = t2, method="REML")
+plot(m5, shade=T)
+t2 %>% mutate(r=resid(m5)) %>% ggplot(aes(x=year, y=r, color=name)) + geom_point() + facet_wrap(~ month)
+t2 %>% mutate(r=resid(m5)) %>% ggplot(aes(x=year, y=r, color=month)) + geom_point() + facet_wrap(~ name)
+
+# Stations have different magnitudes of residuals as well.
+
+saveRDS(t2, "data/t2.rds")
