@@ -1,5 +1,7 @@
 
-// To add:
+// To add/fix:
+// - Data to a matrix with continous time, then
+// -     lat, lon over stations, and month, decade over the time axis
 // - AR(1)
 // - month-varying sigmas, maybe station-varying
 // - binding for monthly trends
@@ -51,3 +53,4 @@ model {
   trend_lat ~ normal(0, 30);
   trend_lon ~ normal(0, 30);
 }
+
