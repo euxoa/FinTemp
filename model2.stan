@@ -1,8 +1,9 @@
 
 // To add:
-// - error structure for stations, and AR(1)
-// - month-varying sigmas
+// - AR(1)
+// - month-varying sigmas, maybe station-varying
 // - binding for monthly trends
+// - Cholesky
 data {
   int N; int S; int T; int darkN;
   real t[N];
@@ -19,11 +20,12 @@ transformed data {
 }
 parameters {
   matrix[S, 12] baseline;
-  real trend[12];
+  vector[12] trend;
+  vector[12] log_tau_month;
   real trend_lat;
   real trend_lon;
   corr_matrix[S] Omega;
-  vector<lower=0>[S] tau;
+  vector<lower=0>[S] tau; // station (margin) sd's
   vector[darkN] darkErr;  
 }
 model {
@@ -33,7 +35,7 @@ model {
   matrix[T, S] TSerr;
   for (i in 1:N) {
     m[i] <- baseline[station[i], month[i]] 
-            + trend[month[i]]/100*decade[i] 
+            + trend[month[i]]/10*decade[i] 
             + trend_lat/100*lat[i]*decade[i] 
             + trend_lon/100*lon[i]*decade[i];
   }
@@ -43,7 +45,7 @@ model {
   for (i in 1:T) TSerr[i] ~ multi_normal(zeroS, Sigma);
   darkErr ~ normal(0, 20);  // FIXME, that 20
   tau ~ lognormal(0, 2);
-  Omega ~ lkj_corr(2.0);
+  Omega ~ lkj_corr(1.0); 
   for (i in 1:S)  baseline[i] ~ normal(5, 20);
   trend ~ normal(0, 300);
   trend_lat ~ normal(0, 30);
