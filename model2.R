@@ -37,13 +37,17 @@ s <- sampling(m, data=stan.data, iter=100, thin=1, init=0, chains=1, refresh=1, 
 saveRDS(s, "s.rds")
 s <- readRDS("s.rds")
 plot(s)
-traceplot(s, "trend", ask=T)
+plot(s, par="trend")
+plot(s, par="rho")
+plot(s, par="tau_month")
+traceplot(s, "trend", ask=F)
 trend.samples <- extract(s, "trend")[[1]]
 plot(density(apply(trend.samples, 1, mean)))
+hist(apply(trend.samples, 1, mean), n=20)
 Omega <- matrix(apply(apply(extract(s, "LOmega")[[1]], 1, function (m) m %*% t(m)), 1, mean), rep(length(names), 2))
 rownames(Omega) <- names
 colnames(Omega) <- names
 heatmap(Omega, symm=T)
-traceplot(s, "tau", inc_warmup=F, ask=T)
+traceplot(s, "tau_month", inc_warmup=F, ask=T)
 traceplot(s, "trend_lat", inc_warmup=F)
-traceplot(s, "Omega", inc_warmup=F, ask=T)
+#traceplot(s, "LOmega", inc_warmup=F, ask=T)

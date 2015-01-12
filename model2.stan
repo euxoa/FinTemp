@@ -29,18 +29,16 @@ model {
   i_dark <- 1;
   for (t in 1:T) {
     decade <- (t-T/2.0)/120.;
-    for (s in 1:S) 
+    for (s in 1:S) {
        if (temp[t, s]<5000) {
           m <- baseline[s, month[t]] 
                      + trend[month[t]]/10*decade 
                      + trend_lat/100*lat[s]*decade 
                      + trend_lon/100*lon[s]*decade;
-          if (t>1) 
-               TSerr[t, s] <- rho*TSerr[t-1, s] + temp[t, s] - m; 
-          else 
-               TSerr[t, s] <- temp[t, s] - m; }
-       else {
-               TSerr[t, s] <- darkErr[i_dark]; i_dark <- i_dark+1; }}
+          if (t>1) m <- m + rho*TSerr[t-1, s]; 
+          TSerr[t, s] <- temp[t, s] - m; }
+       else { TSerr[t, s] <- darkErr[i_dark]; i_dark <- i_dark+1; }           
+  }}
   for (i in 1:12) LSigma[i] <- diag_pre_multiply(tau*tau_month[i], LOmega);
   for (i in 1:T) TSerr[i] ~ multi_normal_cholesky(zeroS, LSigma[month[i]]);
   darkErr ~ normal(0, 30);  
