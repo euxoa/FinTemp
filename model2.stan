@@ -1,7 +1,6 @@
 
 // To add/fix:
-// - binding for monthly trends
-// - Cholesky
+// - GP for months
 data {
   int S; int T; int darkN;
   real temp[T, S];
@@ -18,13 +17,13 @@ parameters {
   vector<lower=0>[12] tau_month;
   real trend_lat;
   real trend_lon;
-  corr_matrix[S] Omega;
+  cholesky_factor_corr[S] LOmega;
   vector<lower=0>[S] tau; // station (margin) sd's
   vector[darkN] darkErr;  
   real<lower=0, upper=1> rho;
 }
 model {
-  matrix[S, S] Sigma[12];
+  matrix[S, S] LSigma[12];
   matrix[T, S] TSerr;
   real m; real decade; int i_dark;
   i_dark <- 1;
@@ -42,12 +41,12 @@ model {
                TSerr[t, s] <- temp[t, s] - m; }
        else {
                TSerr[t, s] <- darkErr[i_dark]; i_dark <- i_dark+1; }}
-  for (i in 1:12) Sigma[i] <- quad_form_diag(Omega, tau*tau_month[i]);
-  for (i in 1:T) TSerr[i] ~ multi_normal(zeroS, Sigma[month[i]]);
+  for (i in 1:12) LSigma[i] <- diag_pre_multiply(tau*tau_month[i], LOmega);
+  for (i in 1:T) TSerr[i] ~ multi_normal_cholesky(zeroS, LSigma[month[i]]);
   darkErr ~ normal(0, 30);  
   tau ~ lognormal(0.7, 1.0);
   tau_month ~ lognormal(0.0, 1.0); // Fix one index?
-  // Omega ~ lkj_corr(1.0); 
+  // LOmega ~ lkj_corr_cholesky(1.0); 
   for (i in 1:S)  baseline[i] ~ normal(5, 50);
   trend ~ normal(0, 30);
   trend_lat ~ normal(0, 30);
