@@ -46,7 +46,7 @@ model {
   darkErr ~ normal(0, 30);  
   tau ~ lognormal(0.7, 1.0);
   tau_month ~ lognormal(0.0, 1.0); // Fix one index?
-  // LOmega ~ lkj_corr_cholesky(1.0); 
+  LOmega ~ lkj_corr_cholesky(1.0); 
   for (i in 1:S)  baseline[i] ~ normal(5, 50);
   trend ~ normal(0, 30);
   trend_lat ~ normal(0, 30);

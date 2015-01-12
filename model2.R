@@ -40,7 +40,7 @@ plot(s)
 traceplot(s, "trend", ask=T)
 trend.samples <- extract(s, "trend")[[1]]
 plot(density(apply(trend.samples, 1, mean)))
-Omega <- matrix(get_posterior_mean(s, "Omega"), c(stan.data$S, stan.data$S))
+Omega <- matrix(apply(apply(extract(s, "LOmega")[[1]], 1, function (m) m %*% t(m)), 1, mean), rep(length(names), 2))
 rownames(Omega) <- names
 colnames(Omega) <- names
 heatmap(Omega, symm=T)
