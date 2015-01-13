@@ -79,7 +79,8 @@ ggplot(d.complete, aes(x=itime, y=name, fill=t)) + geom_tile() + ggtitle("Raw da
 ggsave("figs/data.png", scale=.7) 
 
 ggplot(reshape2::melt(Omega), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + xlab("") + ylab("")
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + xlab("") + ylab("") +
+  ggtitle("Station correlations")
 ggsave("figs/statcorr.png", scale=.7)
 
 extract(s, "tau_month")[[1]] %>% 
@@ -91,7 +92,7 @@ extract(s, "tau_month")[[1]] %>%
   geom_pointrange(aes(ymax=uu, ymin=ll), size=.5)  + 
   ylab("") + xlab("") + ggtitle("Monthly sd (relative)") +
   expand_limits(y=0) +
-  theme_bw(20) 
+  theme_bw()
 ggsave("figs/tau_month.png", scale=.7)
 
 extract(s, "tau")[[1]] %>% 
@@ -103,6 +104,6 @@ extract(s, "tau")[[1]] %>%
   geom_pointrange(aes(ymax=uu, ymin=ll), size=.5)  + 
   ylab("") + xlab("") + ggtitle("Station sd (relative)") +
   expand_limits(y=0) + coord_flip() +
-  theme_bw(20) 
+  theme_bw()
 ggsave("figs/tau.png", scale=.7)
 
