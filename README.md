@@ -1,4 +1,4 @@
-An effort to model trends of monthly temperatures around Finland. The main interest is on seasonal trends after 1980 and on the overall trend and its uncertainty. 
+An effort to *model trends of monthly temperatures around Finland*. The main interest is on seasonal trends after 1980 and on the overall trend and its uncertainty. 
 
 Work in progress. Current model:
 - Trends by month, common to stations. Baseline temperature per month-station combination.
