@@ -33,21 +33,43 @@ stan.data <- list(
     
 
 m <- stan_model(file="model2.stan")
-s <- sampling(m, data=stan.data, iter=100, thin=1, init=0, chains=1, refresh=1, seed=5, chain_id=1)
+s <- sampling(m, data=stan.data, warmup=250, iter=1000, thin=5, init=0, chains=4, refresh=1)
 saveRDS(s, "s.rds")
 s <- readRDS("s.rds")
 plot(s)
 plot(s, par="trend")
 plot(s, par="rho")
 plot(s, par="tau_month")
-traceplot(s, "trend", ask=F)
+traceplot(s, "trend", inc_warmup=F, ask=T)
 trend.samples <- extract(s, "trend")[[1]]
 plot(density(apply(trend.samples, 1, mean)))
-hist(apply(trend.samples, 1, mean), n=20)
+hist(apply(trend.samples, 1, mean), n=100)
 Omega <- matrix(apply(apply(extract(s, "LOmega")[[1]], 1, function (m) m %*% t(m)), 1, mean), rep(length(names), 2))
 rownames(Omega) <- names
 colnames(Omega) <- names
 heatmap(Omega, symm=T)
-traceplot(s, "tau_month", inc_warmup=F, ask=T)
+traceplot(s, "tau_month", inc_warmup=F, ask=F)
 traceplot(s, "trend_lat", inc_warmup=F)
 #traceplot(s, "LOmega", inc_warmup=F, ask=T)
+sort(setNames(svd(Omega)[[2]][,1], names), decr=T)
+sort(setNames(svd(Omega)[[2]][,2], names), decr=T)
+
+trend.samples %>% apply(., 2, function (v) quantile(v, c(.025, .25, .5, .75, .975))/10) %>% 
+  t  %>% data.frame %>% setNames(c("ll", "l", "m", "u", "uu")) %>% 
+  data.frame(., month=reorder(levels(d$month), 1:12)) %>% 
+  ggplot(., aes(x=month, y=m)) + #geom_point(size=2) + 
+  geom_pointrange(aes(ymax=u, ymin=l), size=1) + 
+  geom_pointrange(aes(ymax=uu, ymin=ll), size=.5)  + 
+  ylab("°C / decade") + xlab("") + ggtitle("1980-2014 (bars 50% and 95%)") +
+  expand_limits(y=0) +
+  theme_bw(20)
+
+trend.samples %>% apply(., 1, mean) %>% data.frame(trend=./10) %>%
+  ggplot(., aes(x=trend)) + geom_density(fill="grey80", color="white") + theme_bw(20) +
+  xlab("°C / decade") + ylab("") + scale_y_continuous(breaks=NULL) + 
+  geom_vline(aes(xintercept=mean(trend.samples)/10), color="red") +
+  geom_vline(aes(xintercept=quantile(apply(trend.samples, 1, 
+                                           function (x) mean(x)/10), c(.025, .25, .75, .975))), color="red", linetype=2) +
+  ggtitle("1980-2014 (lines 50% and 95%)")
+
+reshape2::melt(Omega) 
