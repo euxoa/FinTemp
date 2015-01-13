@@ -1,6 +1,7 @@
 An effort to **model trends of monthly temperatures around Finland**. The main interest is on seasonal trends after 1980 and on the overall trend and its uncertainty. 
 
 Work in progress. Current model:
+- Data: NASA GISS, homogenized.
 - Trends by month, common to stations. Baseline temperature per month-station combination.
 - Handles missing data.
 - MA(1) for temporal autocorrelation.
