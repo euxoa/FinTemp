@@ -1,30 +1,12 @@
-An effort to model trends of monthly temperatures around Finland. The main interest is on seasonal trends after 1980 and on the overall trend and its uncertainty. Spatial differences will be also be modelled. 
+An effort to **model trends of monthly temperatures around Finland**. The main interest is on seasonal trends after 1980 and on the overall trend and its uncertainty. 
 
-Work in progress, not much models yet. Current plan:
-- At least the mixed model (mgcv model in preprocess2.R) improved and fitted properly with Stan. 
-- AR(1) residuals. Correlated station residuals. Residual magnitudes differ by month and maybe by station.
-- Monthly trends with a prior. Later Gaussian/von-Mises process for monthly trends.
-- Linearity for spatial trends.
+Work in progress. Current model:
+- Trends by month, common to stations. Baseline temperature per month-station combination.
+- Handles missing data.
+- MA(1) for temporal autocorrelation.
+- Covariance for stations.
+- Residual variance varies by station, month.
+- Latitudinal and longitudinal variation in trends (not significant).
 
-This is with lme4:
-
-      > m3 <- lmer(t ~ 1+ name*month + (0 + decade | month) + (0 + decade | name) + decade, data=t2 )
-      > fixef(m3)["decade"]
-        decade 
-      0.441727 
-      > # ±0.06 (sd) but does not have autocorrelation and station correlations taken into account.
-      > ranef(m3)$month
-                decade
-      Jan  0.139847286
-      Feb -0.206245745
-      Mar -0.243496415
-      Apr  0.108498686
-      May -0.133570023
-      Jun -0.056933494
-      Jul  0.006802484
-      Aug  0.024848107
-      Sep  0.068195997
-      Oct -0.209714445
-      Nov  0.182208805
-      Dec  0.319558756
-      
+![Monthly trends](/figs/monthly.png?raw=true)
+![Overall trend](/figs/trend.png?raw=true)
