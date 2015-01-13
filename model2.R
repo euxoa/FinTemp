@@ -54,6 +54,7 @@ traceplot(s, "trend_lat", inc_warmup=F)
 sort(setNames(svd(Omega)[[2]][,1], names), decr=T)
 sort(setNames(svd(Omega)[[2]][,2], names), decr=T)
 
+
 trend.samples %>% apply(., 2, function (v) quantile(v, c(.025, .25, .5, .75, .975))/10) %>% 
   t  %>% data.frame %>% setNames(c("ll", "l", "m", "u", "uu")) %>% 
   data.frame(., month=reorder(levels(d$month), 1:12)) %>% 
@@ -63,6 +64,7 @@ trend.samples %>% apply(., 2, function (v) quantile(v, c(.025, .25, .5, .75, .97
   ylab("°C / decade") + xlab("") + ggtitle("1980-2014 (bars 50% and 95%)") +
   expand_limits(y=0) +
   theme_bw(20)
+ggsave("figs/monthly.png", scale=.7)
 
 trend.samples %>% apply(., 1, mean) %>% data.frame(trend=./10) %>%
   ggplot(., aes(x=trend)) + geom_density(fill="grey80", color="white") + theme_bw(20) +
@@ -71,5 +73,36 @@ trend.samples %>% apply(., 1, mean) %>% data.frame(trend=./10) %>%
   geom_vline(aes(xintercept=quantile(apply(trend.samples, 1, 
                                            function (x) mean(x)/10), c(.025, .25, .75, .975))), color="red", linetype=2) +
   ggtitle("1980-2014 (lines 50% and 95%)")
+ggsave("figs/trend.png", scale=.7)
 
-reshape2::melt(Omega) 
+ggplot(d.complete, aes(x=itime, y=name, fill=t)) + geom_tile() + ggtitle("Raw data")
+ggsave("figs/data.png", scale=.7) 
+
+ggplot(reshape2::melt(Omega), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + xlab("") + ylab("")
+ggsave("figs/statcorr.png", scale=.7)
+
+extract(s, "tau_month")[[1]] %>% 
+  apply(., 2, function (v) quantile(v, c(.025, .25, .5, .75, .975))) %>% 
+  t  %>% data.frame %>% setNames(c("ll", "l", "m", "u", "uu")) %>% 
+  data.frame(., month=reorder(levels(d$month), 1:12)) %>% 
+  ggplot(., aes(x=month, y=m)) + #geom_point(size=2) + 
+  geom_pointrange(aes(ymax=u, ymin=l), size=1) + 
+  geom_pointrange(aes(ymax=uu, ymin=ll), size=.5)  + 
+  ylab("") + xlab("") + ggtitle("Monthly sd (relative)") +
+  expand_limits(y=0) +
+  theme_bw(20) 
+ggsave("figs/tau_month.png", scale=.7)
+
+extract(s, "tau")[[1]] %>% 
+  apply(., 2, function (v) quantile(v, c(.025, .25, .5, .75, .975))) %>% 
+  t  %>% data.frame %>% setNames(c("ll", "l", "m", "u", "uu")) %>% 
+  data.frame(., month=names) %>% 
+  ggplot(., aes(x=month, y=m)) + #geom_point(size=2) + 
+  geom_pointrange(aes(ymax=u, ymin=l), size=1) + 
+  geom_pointrange(aes(ymax=uu, ymin=ll), size=.5)  + 
+  ylab("") + xlab("") + ggtitle("Station sd (relative)") +
+  expand_limits(y=0) + coord_flip() +
+  theme_bw(20) 
+ggsave("figs/tau.png", scale=.7)
+
