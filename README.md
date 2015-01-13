@@ -10,3 +10,9 @@ Work in progress. Current model:
 
 ![Monthly trends](/figs/monthly.png?raw=true)
 ![Overall trend](/figs/trend.png?raw=true)
+![Overall trend](/figs/data.png?raw=true)
+![Overall trend](/figs/statcorr.png?raw=true)
+![Overall trend](/figs/tau_month.png?raw=true)
+![Overall trend](/figs/tau.png?raw=true)
+
+
